@@ -1,0 +1,13 @@
+#newton-canvas {
+
+    width: 100vw;
+    height: 100vh;
+}
+#julia-param {
+    position: absolute;
+    opacity: 0.5;
+    top:10.0;
+    left:10.0;    
+    font-family: monospace;
+    color: #333;
+}
