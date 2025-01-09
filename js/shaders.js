@@ -4,12 +4,13 @@ precision highp float;
 uniform vec2 u_resolution;
 uniform float u_zoom;
 uniform vec2 u_mouse_coord;
+uniform vec2 u_roots[{% n %}];
 
 out vec4 fragColor;
 const int MAX_ITERATIONS = 100;
-const float SQUARED_BAILOUT = 0.1;
+const float SQUARED_BAILOUT = 0.05;
 const float PI = 3.1415926535897932384626433832795;
-
+const int N = {% n %};
 vec2 square(vec2 v) {
     float w = v.x * v.x - v.y * v.y;
     float z = 2.0 * v.x * v.y;
@@ -24,7 +25,48 @@ float atan2(vec2 v) {
         return atn;
     }
     return atn + PI*2.0;
-
+}
+vec2 to_polar(vec2 v) {
+    float ang = atan2(v);
+    float rad2 = v.x*v.x+v.y*v.y;
+    return vec2(sqrt(rad2), ang);
+}
+vec2 to_cart(vec2 v) {
+    return v[0]*vec2(cos(v[1]),sin(v[1]));
+}
+vec2 product(vec2 v1, vec2 v2) {
+    vec2 polar1 = to_polar(v1);
+    vec2 polar2 = to_polar(v2);
+    return to_cart(vec2(polar1[0]*polar2[0], polar1[1]+polar2[1]));
+}
+vec2 product(int n, vec2 v) {
+    return float(n) * v;
+}
+vec2 product(float x, vec2 v) {
+    return x * v;
+}
+vec2 product(vec2 v, int n) {
+    return float(n) * v;
+}
+vec2 product(vec2 v, float x) {
+    return x * v;
+}
+vec2 quot(vec2 v1, vec2 v2) {
+    vec2 polar1 = to_polar(v1);
+    vec2 polar2 = to_polar(v2);
+    return to_cart(vec2(polar1[0]/polar2[0], polar1[1]-polar2[1]));
+}
+vec2 quot(int n, vec2 v) {
+    return 1.0/float(n) * v;
+}
+vec2 quot(float x, vec2 v) {
+    return 1.0/x * v;
+}
+vec2 quot(vec2 v, int n) {
+    return 1.0/float(n) * v;
+}
+vec2 quot(vec2 v, float x) {
+    return 1.0/x * v;
 }
 vec2 whole_power(vec2 v, int n) {
     float ang = atan2(v);
@@ -55,13 +97,20 @@ float loop(vec2 S) {
         // if (norm2(A) < SQUARED_BAILOUT/1000.0) {
         //     break;
         // }
-        if (dist2(whole_power(A, 3),vec2(1.0,0.0)) < SQUARED_BAILOUT) {
+        bool b = false;
+        for (int k = 0; k < N; ++k) {
+
+            if (dist2(A, u_roots[k]) < SQUARED_BAILOUT) {
+                b = true;        
+            }
+        }
+        if (b) {
             break;
         }
-        A = 2.0/3.0*A + 1.0/3.0*complex_inv(whole_power(A,2));    
+        A = {% recursion %};
         C = C - 1;
     }
-    return pow(1.0 - (float(C)/float(MAX_ITERATIONS)),1.0/6.0);
+    return pow(1.0 - (float(C)/float(MAX_ITERATIONS)),0.25);
 }
 void main( void ) {
     vec2 coord = (gl_FragCoord.xy - u_resolution.xy/2.0) / u_zoom;
@@ -71,6 +120,15 @@ void main( void ) {
     float G = M;
     float B = M;
     float screen_y = u_resolution.y- gl_FragCoord.y;
+    for (int k = 0; k < N; ++k) {
+
+        if (dist2(coord, u_roots[k]) < 0.03) {
+            R = 0.0;
+            G = 0.0;
+            B = 1.0;
+    
+        }
+    }
     /*
     if ((abs(coord.x) < 1.0/u_zoom) || (abs(coord.y) < 1.0/u_zoom)) {
         R = 0.0;
