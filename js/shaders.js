@@ -119,7 +119,6 @@ void main( void ) {
     float R = M;
     float G = M;
     float B = M;
-    float screen_y = u_resolution.y- gl_FragCoord.y;
     for (int k = 0; k < N; ++k) {
 
         if (dist2(coord, u_roots[k]) < 0.03) {
@@ -140,18 +139,14 @@ void main( void ) {
         G = 0.0;
         B = 1.0;
     }
-    if (
-        (abs(u_mouse_coord.x - gl_FragCoord.x) < 1.0 || 
-         abs(screen_y - u_mouse_coord.y) < 1.0)  &&
-            (abs(u_mouse_coord.x - gl_FragCoord.x) + 
-            abs(screen_y - u_mouse_coord.y) < 40.0))
-             {
+    */
+    if (dist2(u_mouse_coord/u_zoom, gl_FragCoord.xy) < 20.0) {
         R = 1.0;
         G = 0.0;
         B = 0.0;
 
     }
-    */
+    
     fragColor = vec4(R, G, B, 1.0);
 }
 `
