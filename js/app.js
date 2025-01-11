@@ -17,6 +17,17 @@ function simplify_for_glsl(poly) {
     const step2 = step1.replace(/r(\d)/g, 'u_roots[$1]')
     return step2.replace(/x/g, 'A')
 }
+const BASE_COLORS = [
+    [1,0,0],
+    [0,1,0],
+    [0,0,1],
+    [1,1,0],
+    [1,1,1],
+    [1,0,1],
+    [1,1,1],
+
+
+]
 class App {
 
     constructor(n) {
@@ -76,7 +87,9 @@ class App {
             new THREE.Vector2(this.newton_canvas.width,this.newton_canvas.height) },
             u_mouse_coord: { type: "v2", value: this.mouse},
             u_zoom: { type: "f", value: 100 },
-            u_roots: { type: "v2v", value: this.roots.flat() }
+            u_roots: { type: "v2v", value: this.roots.flat() },
+            u_colors: { type: "v2v", value: BASE_COLORS.slice(0,this.n).flat()}
+
         };
         const newton_material = new THREE.RawShaderMaterial({
             uniforms: newton_uniforms,
@@ -135,7 +148,7 @@ class App {
             for (let j = 0; j < this.n; ++j) {
                 if (dist2z(this.mouse, this.roots[j]) < 100) {
                     this._dragged_root = j;
-                    console.log('D', j)       
+                    //console.log('D', j)       
 
                 }
             }
@@ -143,8 +156,9 @@ class App {
         this.newton_canvas.addEventListener('mousemove', (e) => {
             this.mouse = this.event_to_mouse_coords(e)
             const coord = this.event_to_complex_coords(e)
-            console.log(coord)
+            //console.log(coord)
             if (this._dragged_root != null) {
+              //  console.log('D',this._dragged_root)
                 this.roots[this._dragged_root] = [coord.x,coord.y]
             }        
         })

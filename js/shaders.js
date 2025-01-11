@@ -5,6 +5,7 @@ uniform vec2 u_resolution;
 uniform float u_zoom;
 uniform vec2 u_mouse_coord;
 uniform vec2 u_roots[{% n %}];
+uniform vec3 u_colors[{% n %}];
 
 out vec4 fragColor;
 const int MAX_ITERATIONS = 100;
@@ -90,8 +91,9 @@ vec2 diff(vec2 v1,vec2 v2) {
 float dist2(vec2 v1, vec2 v2) {
     return norm2(diff(v1,v2));
 }
-float loop(vec2 S) {
+vec3 loop(vec2 S) {
     int C = MAX_ITERATIONS;
+    int R = 0;
     vec2 A = S;
     for (int j = 0; j < MAX_ITERATIONS; j++) {
         // if (norm2(A) < SQUARED_BAILOUT/1000.0) {
@@ -99,67 +101,40 @@ float loop(vec2 S) {
         // }
         bool b = false;
         for (int k = 0; k < N; ++k) {
-
             if (dist2(A, u_roots[k]) < SQUARED_BAILOUT) {
-                b = true;        
+                b = true;
+                R = k;
             }
         }
-        if (b) {
+        if (b) {            
             break;
         }
         A = {% recursion %};
         C = C - 1;
     }
-    return pow(1.0 - (float(C)/float(MAX_ITERATIONS)),0.25);
+    float value =  pow(1.0 - (float(C)/float(MAX_ITERATIONS)),0.25);
+    vec3 base_color = value * u_colors[R];
+    return value * base_color;
 }
 void main( void ) {
     vec2 coord = (gl_FragCoord.xy - u_resolution.xy/2.0) / u_zoom;
-    float M = atan2(coord)/PI/2.0;
-    M = loop(coord);
-    float R = M;
-    float G = M;
-    float B = M;
+    vec3 RGB = loop(coord);
     float screen_y = u_resolution.y- gl_FragCoord.y;
     for (int k = 0; k < N; ++k) {
 
         if (dist2(coord, u_roots[k]) < 0.03) {
-            R = 0.3;
-            G = 0.7;
-            B = 0.7;
+            RGB = u_colors[k];
     
         }
     }
-    /*
-    if ((abs(coord.x) < 1.0/u_zoom) || (abs(coord.y) < 1.0/u_zoom)) {
-        R = 0.0;
-        G = 0.0;
-        B = 1.0;
-    }
-    if ((abs(coord.x-1.0) < 1.0/u_zoom) || (abs(coord.y-1.0) < 1.0/u_zoom)) {
-        R = 0.0;
-        G = 0.0;
-        B = 1.0;
-    }
-    */
     if (dist2(u_mouse_coord.xy,gl_FragCoord.xy) < 100.0) {
-        R = 1.0;
-        G = 0.0;
-        B = 0.0;
+        RGB = vec3(1.0,0.0,0.0);
     }
     if (dist2(u_mouse_coord.xy, 
     coord*u_zoom+u_resolution.xy/2.0) < 100.0) {
-        R = 0.0;
-        G = 1.0;
-        B = 0.0;
+        RGB = vec3(0.0,1.0,0.0);
     }
-    // if (dist2(u_mouse_coord.xy, 
-    //     u_roots[1]  *u_zoom+u_resolution.xy/2.0) < 100.0) {
-    //         R = 0.0;
-    //         G = 1.0;
-    //         B = 0.0;
-    //     }    
-   
-    fragColor = vec4(R, G, B, 1.0);
+    fragColor = vec4(RGB, 1.0);
 }
 `
 export const VERTEX_SHADER = `
