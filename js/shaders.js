@@ -123,9 +123,9 @@ void main( void ) {
     for (int k = 0; k < N; ++k) {
 
         if (dist2(coord, u_roots[k]) < 0.03) {
-            R = 0.0;
-            G = 0.0;
-            B = 1.0;
+            R = 0.3;
+            G = 0.7;
+            B = 0.7;
     
         }
     }
@@ -140,18 +140,25 @@ void main( void ) {
         G = 0.0;
         B = 1.0;
     }
-    if (
-        (abs(u_mouse_coord.x - gl_FragCoord.x) < 1.0 || 
-         abs(screen_y - u_mouse_coord.y) < 1.0)  &&
-            (abs(u_mouse_coord.x - gl_FragCoord.x) + 
-            abs(screen_y - u_mouse_coord.y) < 40.0))
-             {
+    */
+    if (dist2(u_mouse_coord.xy,gl_FragCoord.xy) < 100.0) {
         R = 1.0;
         G = 0.0;
         B = 0.0;
-
     }
-    */
+    if (dist2(u_mouse_coord.xy, 
+    coord*u_zoom+u_resolution.xy/2.0) < 100.0) {
+        R = 0.0;
+        G = 1.0;
+        B = 0.0;
+    }
+    // if (dist2(u_mouse_coord.xy, 
+    //     u_roots[1]  *u_zoom+u_resolution.xy/2.0) < 100.0) {
+    //         R = 0.0;
+    //         G = 1.0;
+    //         B = 0.0;
+    //     }    
+   
     fragColor = vec4(R, G, B, 1.0);
 }
 `
@@ -164,3 +171,16 @@ void main() {
     gl_Position = vec4( position, 1.0 );
 }
 `
+/*
+
+d2(v1,v2) = (v11-v21)(v11-v21)+(v12-v22)(v12-v22)
+d2(v1/z,v2/z) = (v11/z-v21/z)(v11/z-v21/z)+(v12/z-v22/z)(v12/z-v22/z)=
+(v11-v21)/z*(v11-v21)/z+(v12-v22)/z(v12-v22)/z=
+(v11-v21)(v11-v21)/z/z+(v12-v22)(v12-v22)/z/z=
+((v11-v21)(v11-v21)+(v12-v22)(v12-v22))/z/z=
+d2(v1,v2)/z/z
+
+
+
+
+*/

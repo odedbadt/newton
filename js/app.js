@@ -21,11 +21,13 @@ class App {
 
     constructor(n) {
         this.n = n
-        this.zoom = 100
+        this.zoom = 1000000
+        this._dragged_root = null;
+        this.mouse = new THREE.Vector2(0,0)
         this.roots = [];
         const poly_str_builder = []
         for (let j = 0; j < n; j++) {
-            const r = 1 + (j / n)
+            const r = 1// + (j*j / n)
             const real = Math.cos(j / n * Math.PI * 2) * r
             const imag = Math.sin(j / n * Math.PI * 2) * r
             this.roots.push([real, imag])
@@ -38,19 +40,24 @@ class App {
 
         this.preprocesed_shader = NEWTON_FRAGMENT_SHADER.replace(/{% n %}/g, n).replace('{% recursion %}', this.glsl_recursion).replace('{% poly %}', this.glsl_poly_str)
         this.newton_canvas = document.getElementById('newton-canvas');
-
+        this.dpr=1;
     }
 
 
 
-    // event_to_complex_coordinate(e) {
-    //     return [e.offsetX * window.devicePixelRatio/
-    // document.getElementById('newton_canvas').width,
-    // e.offsetY * window.devicePixelRatio/
-    // document.getElementById('newton_canvas').height]
-    // }
+    event_to_complex_coords(e) {
+        return new THREE.Vector2((e.offsetX * this.dpr
+    -this.newton_canvas.width/2)/this.zoom,
+    -(e.offsetY * this.dpr
+    -this.newton_canvas.height/2)/this.zoom)
+    }
+    event_to_mouse_coords(e) {
+        return new THREE.Vector2(e.offsetX * this.dpr,
+        (this.newton_canvas.height - e.offsetY) * this.dpr)
+    }
     init() {
         this.init_size()
+        this.init_mouse_events()
         this.animate()
     }
     render() {
@@ -67,8 +74,8 @@ class App {
             u_time: { type: "f", value: 1.0 },
             u_resolution: { type: "v2", value: 
             new THREE.Vector2(this.newton_canvas.width,this.newton_canvas.height) },
-            u_mouse_coord: { type: "v2", value: new THREE.Vector2(0,0) },
-            u_zoom: { type: "f", value: this.zoom },
+            u_mouse_coord: { type: "v2", value: this.mouse},
+            u_zoom: { type: "f", value: 100 },
             u_roots: { type: "v2v", value: this.roots.flat() }
         };
         const newton_material = new THREE.RawShaderMaterial({
@@ -84,7 +91,7 @@ class App {
             canvas: this.newton_canvas,
             context: newton_context
         })
-        newton_renderer.setPixelRatio(window.devicePixelRatio);
+        newton_renderer.setPixelRatio(this.dpr);
 
         newton_renderer.setSize(this.newton_canvas.width,
             this.newton_canvas.height)
@@ -93,20 +100,59 @@ class App {
     }
     animate() {
         this.render();
-        //requestAnimationFrame(this.animate.bind(this));
+        requestAnimationFrame(this.animate.bind(this));
     }
     init_size() {
         const onWindowResize =(event) =>{
             const rect = this.newton_canvas.getBoundingClientRect()
-            this.newton_canvas.width = rect.width;
-            this.newton_canvas.height = rect.height;
-            this.zoom = 100;
+            this.newton_canvas.width = rect.width * this.dpr;
+            this.newton_canvas.height = rect.height * this.dpr;
+            this.zoom = 100;//Math.min(rect.width, rect.height) * this.dpr;
         }
         onWindowResize();
 
         window.addEventListener('resize', onWindowResize, false);
 
     }
+    init_mouse_events() {
+        // non symmetrical application of zoom as written in shader:
+        // dist2(u_mouse_coord.xy, coord*u_zoom+u_resolution.xy/2.0) < 100.0)
+        // coord = 
+        /*
+    if (dist2(u_mouse_coord.xy, 
+        u_roots[0]  *u_zoom+u_resolution.xy/2.0) < 100.0) {
+            R = 0.0;
+            G = 1.0;
+            B = 0.0;
+        } */        
+        const h_w = this.newton_canvas.width/2
+        const h_h = this.newton_canvas.height/2
+        const dist2z = (mouse_coord_v2, root_arr) => 
+            (mouse_coord_v2.x-(root_arr[0]*this.zoom+h_w))*(mouse_coord_v2.x-(root_arr[0]*this.zoom+h_w))+
+            (mouse_coord_v2.y-(root_arr[1]*this.zoom+h_h))*(mouse_coord_v2.y-(root_arr[1]*this.zoom+h_h))
+        this.newton_canvas.addEventListener('mousedown', (e) => {
+            this.mouse = this.event_to_mouse_coords(e)
+            for (let j = 0; j < this.n; ++j) {
+                if (dist2z(this.mouse, this.roots[j]) < 100) {
+                    this._dragged_root = j;
+                    console.log('D', j)       
+
+                }
+            }
+        })
+        this.newton_canvas.addEventListener('mousemove', (e) => {
+            this.mouse = this.event_to_mouse_coords(e)
+            const coord = this.event_to_complex_coords(e)
+            console.log(coord)
+            if (this._dragged_root != null) {
+                this.roots[this._dragged_root] = [coord.x,coord.y]
+            }        
+        })
+        this.newton_canvas.addEventListener('mouseup', (e) => {
+            this._dragged_root = null;
+        })
+    }
+        
 }
 
 
