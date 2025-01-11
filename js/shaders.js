@@ -132,7 +132,7 @@ void main( void ) {
     }
     if (dist2(u_mouse_coord.xy, 
     coord*u_zoom+u_resolution.xy/2.0) < 100.0) {
-        RGB = vec3(0.0,1.0,0.0);
+        RGB = vec3(0.0,0.0,0.0);
     }
     fragColor = vec4(RGB, 1.0);
 }
