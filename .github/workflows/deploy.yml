@@ -1,3 +1,6 @@
+permissions:
+  contents: write
+
 name: Deploy to GitHub Pages
 
 on:
@@ -26,9 +29,9 @@ jobs:
           npm install
           npm run build
 
-      # Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./static/js  # Change if your build directory differs
+  - name: Deploy to GitHub Pages
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+        git push origin gh-pages
