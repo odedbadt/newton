@@ -40,3 +40,13 @@ jobs:
           git merge origin/gh-pages --allow-unrelated-histories
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push origin gh-pages
+          git fetch origin gh-pages || git checkout --orphan gh-pages
+          git reset --hard
+  
+          # Copy the build output to the gh-pages branch
+          cp -r dist/* . 
+          git add .
+          git commit -m "Deploy to GitHub Pages"
+  
+          # Push to gh-pages branch
+          git push origin gh-pages --force          
