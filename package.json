@@ -8,6 +8,6 @@
     "three": "^0.172.0"
   },
   "scripts": {
-    "build": "webpack"
+    "build": "npx webpack"
   }
 }
