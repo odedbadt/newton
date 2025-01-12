@@ -3,8 +3,8 @@ import path from 'path';
 export default {
   entry: './js/app.js',
   output: {
+    path: path.resolve('dist'),
     filename: 'bundle.js',
-    path: path.resolve('static/js'),
   },
   resolve: {
     extensions: ['.ts', '.js'],
