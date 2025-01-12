@@ -46,7 +46,7 @@ jobs:
   
           # Copy the build output to the gh-pages branch
           #cp -r dist/* dist
-          git add dist/*
+          git add -f dist
           git commit -m "Deploy to GitHub Pages"
   
           # Push to gh-pages branch
