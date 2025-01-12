@@ -114,7 +114,7 @@ vec3 loop(vec2 S) {
     }
     float value =  pow(1.0 - (float(C)/float(MAX_ITERATIONS)),0.25);
     vec3 base_color = value * u_colors[R];
-    return value * base_color;
+    return value * vec3(1.0,1.0,1.0)+(1.0-value)*base_color;
 }
 void main( void ) {
     vec2 coord = (gl_FragCoord.xy - u_resolution.xy/2.0) / u_zoom;

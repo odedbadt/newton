@@ -32,7 +32,7 @@ class App {
 
     constructor(n) {
         this.n = n
-        this.zoom = 1000000
+        this.zoom = 100
         this._dragged_root = null;
         this.mouse = new THREE.Vector2(0,0)
         this.roots = [];
@@ -51,7 +51,8 @@ class App {
 
         this.preprocesed_shader = NEWTON_FRAGMENT_SHADER.replace(/{% n %}/g, n).replace('{% recursion %}', this.glsl_recursion).replace('{% poly %}', this.glsl_poly_str)
         this.newton_canvas = document.getElementById('newton-canvas');
-        this.dpr=1;
+        this.dpr= window.devicePixelRatio;
+        this.dirty = true
     }
 
 
@@ -64,7 +65,7 @@ class App {
     }
     event_to_mouse_coords(e) {
         return new THREE.Vector2(e.offsetX * this.dpr,
-        (this.newton_canvas.height - e.offsetY) * this.dpr)
+        (this.newton_canvas.height - e.offsetY * this.dpr))
     }
     init() {
         this.init_size()
@@ -84,7 +85,8 @@ class App {
         const newton_uniforms = {
             u_time: { type: "f", value: 1.0 },
             u_resolution: { type: "v2", value: 
-            new THREE.Vector2(this.newton_canvas.width,this.newton_canvas.height) },
+            new THREE.Vector2(this.newton_canvas.width,
+                              this.newton_canvas.height) },
             u_mouse_coord: { type: "v2", value: this.mouse},
             u_zoom: { type: "f", value: 100 },
             u_roots: { type: "v2v", value: this.roots.flat() },
@@ -104,15 +106,19 @@ class App {
             canvas: this.newton_canvas,
             context: newton_context
         })
-        newton_renderer.setPixelRatio(this.dpr);
+        const rect = this.newton_canvas.getBoundingClientRect()
 
-        newton_renderer.setSize(this.newton_canvas.width,
-            this.newton_canvas.height)
-            newton_renderer.render(newton_scene, camera);
+        newton_renderer.setPixelRatio(this.dpr);
+        newton_renderer.setSize(rect.width,
+            rect.height)
+        newton_renderer.render(newton_scene, camera);
 
     }
     animate() {
-        this.render();
+        if (this.dirty) {
+            this.render();   
+            this.dirty = false;     
+        }
         requestAnimationFrame(this.animate.bind(this));
     }
     init_size() {
@@ -121,6 +127,7 @@ class App {
             this.newton_canvas.width = rect.width * this.dpr;
             this.newton_canvas.height = rect.height * this.dpr;
             this.zoom = 100;//Math.min(rect.width, rect.height) * this.dpr;
+            this.dirty = true;
         }
         onWindowResize();
 
@@ -131,27 +138,23 @@ class App {
         // non symmetrical application of zoom as written in shader:
         // dist2(u_mouse_coord.xy, coord*u_zoom+u_resolution.xy/2.0) < 100.0)
         // coord = 
-        /*
-    if (dist2(u_mouse_coord.xy, 
-        u_roots[0]  *u_zoom+u_resolution.xy/2.0) < 100.0) {
-            R = 0.0;
-            G = 1.0;
-            B = 0.0;
-        } */        
         const h_w = this.newton_canvas.width/2
-        const h_h = this.newton_canvas.height/2
+        const h_h = this.newton_canvas.height/2;
+        console.log('HW', h_w)
+        console.log('HW', h_h)
         const dist2z = (mouse_coord_v2, root_arr) => 
-            (mouse_coord_v2.x-(root_arr[0]*this.zoom+h_w))*(mouse_coord_v2.x-(root_arr[0]*this.zoom+h_w))+
-            (mouse_coord_v2.y-(root_arr[1]*this.zoom+h_h))*(mouse_coord_v2.y-(root_arr[1]*this.zoom+h_h))
+            (mouse_coord_v2.x-(root_arr[0]*this.zoom +h_w))*(mouse_coord_v2.x-(root_arr[0]*this.zoom +h_w))+
+            (mouse_coord_v2.y-(root_arr[1]*this.zoom +h_h))*(mouse_coord_v2.y-(root_arr[1]*this.zoom +h_h))
         this.newton_canvas.addEventListener('mousedown', (e) => {
             this.mouse = this.event_to_mouse_coords(e)
+            console.log(this.mouse);
             for (let j = 0; j < this.n; ++j) {
-                if (dist2z(this.mouse, this.roots[j]) < 100) {
+                if (dist2z(this.mouse, this.roots[j]) < 100*this.dpr*this.dpr) {
                     this._dragged_root = j;
-                    //console.log('D', j)       
 
                 }
             }
+            this.dirty = true
         })
         this.newton_canvas.addEventListener('mousemove', (e) => {
             this.mouse = this.event_to_mouse_coords(e)
@@ -161,9 +164,11 @@ class App {
               //  console.log('D',this._dragged_root)
                 this.roots[this._dragged_root] = [coord.x,coord.y]
             }        
+            this.dirty = true
         })
         this.newton_canvas.addEventListener('mouseup', (e) => {
             this._dragged_root = null;
+            this.dirty = true
         })
     }
         
@@ -173,7 +178,7 @@ class App {
 
 
 function app_ignite() {
-    window._app = new App(7);
+    window._app = new App(5);
     window._app.init();
 }
 
