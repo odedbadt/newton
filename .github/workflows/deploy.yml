@@ -37,6 +37,6 @@ jobs:
           # Fetch remote gh-pages branch and rebase/merge
           git fetch origin gh-pages
           git checkout gh-pages
-          git merge origin/gh-pages
+          git merge origin/gh-pages --allow-unrelated-histories
           git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
           git push origin gh-pages
