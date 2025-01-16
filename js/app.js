@@ -178,7 +178,7 @@ class App {
 
 
 function app_ignite() {
-
+    console.log('CICD caught this')
     window._app = new App(3);
     window._app.init();
 }
