@@ -178,7 +178,8 @@ class App {
 
 
 function app_ignite() {
-    window._app = new App(5);
+
+    window._app = new App(3);
     window._app.init();
 }
 
