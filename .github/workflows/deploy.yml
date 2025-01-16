@@ -34,9 +34,11 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch origin      
+          git fetch origin
+          mv dist dist_tmp      
           git checkout gh-pages
           git reset --hard main
+          mv dist_tmp dist      
           git add -f dist
           git commit -m 'Deployment'
           git push --force origin gh-pages
