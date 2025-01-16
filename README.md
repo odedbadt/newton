@@ -1,4 +1,4 @@
-# An interactive Newton fractal implementation
+# An interactive Newton fractal implementation 
 A GLSL written interactive Newton fractal for demonstrations
 
 ### [Live Demo](https://odedbadt.github.io/newton)

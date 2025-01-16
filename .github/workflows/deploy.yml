@@ -34,20 +34,10 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          # Fetch remote gh-pages branch and rebase/merge
-          git fetch origin gh-pages
+          git fetch origin      
           git checkout gh-pages
-          git merge origin/gh-pages --allow-unrelated-histories
-          git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
-
-          git push origin gh-pages
-          git fetch origin gh-pages || git checkout --orphan gh-pages
-          git reset --hard
-  
-          # Copy the build output to the gh-pages branch
-          #cp -r dist/* dist
+          git reset --hard main
           git add -f dist
-          git commit -m "Deploy to GitHub Pages"
+          git commit -m 'Deployment'
+          git push --force origin gh-pages
   
-          # Push to gh-pages branch
-          git push origin gh-pages --force          
