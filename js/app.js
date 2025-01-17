@@ -14,7 +14,7 @@ function simplify_for_glsl(poly) {
         'c+n1 -> vec2(c,0)+n1',
         'n1+c -> n1 + vec2(c,0)',
     ]).toString()
-    const step2 = step1.replace(/r(\d)/g, 'u_roots[$1]')
+    const step2 = step1.replace(/r(\d+)/g, 'u_roots[$1]')
     return step2.replace(/x/g, 'A')
 }
 const BASE_COLORS = [
@@ -178,8 +178,10 @@ class App {
 
 
 function app_ignite() {
-    console.log('CICD caught this')
-    window._app = new App(7);
+    const url = new URL(window.location.href);
+    const url_params = new URLSearchParams(url.search)
+    const root_count = (url_params && url_params.get("root_count")) || 5;
+    window._app = new App(root_count);
     window._app.init();
 }
 
