@@ -5,7 +5,7 @@ uniform vec2 u_resolution;
 uniform float u_zoom;
 uniform vec2 u_mouse_coord;
 uniform vec2 u_roots[{% n %}];
-uniform vec3 u_colors[{% n %}];
+uniform vec3 u_colors[{% color_count %}];
 
 out vec4 fragColor;
 const int MAX_ITERATIONS = 100;
@@ -113,7 +113,7 @@ vec3 loop(vec2 S) {
         C = C - 1;
     }
     float value =  pow(1.0 - (float(C)/float(MAX_ITERATIONS)),0.25);
-    vec3 base_color = value * u_colors[R];
+    vec3 base_color = value * u_colors[R % {% color_count %}];
     return value * vec3(1.0,1.0,1.0)+(1.0-value)*base_color;
 }
 void main( void ) {
@@ -123,7 +123,7 @@ void main( void ) {
     for (int k = 0; k < N; ++k) {
 
         if (dist2(coord, u_roots[k]) < 0.03) {
-            RGB = u_colors[k];
+            RGB = u_colors[k % {% color_count %}];
     
         }
     }

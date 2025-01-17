@@ -25,8 +25,6 @@ const BASE_COLORS = [
     [1,1,1],
     [1,0,1],
     [1,1,1],
-
-
 ]
 class App {
 
@@ -49,7 +47,12 @@ class App {
         const derivative_expr = derivative(poly_str, 'x')
         this.glsl_recursion = simplify_for_glsl(`x - (${poly_str})/(${derivative_expr})`)
 
-        this.preprocesed_shader = NEWTON_FRAGMENT_SHADER.replace(/{% n %}/g, n).replace('{% recursion %}', this.glsl_recursion).replace('{% poly %}', this.glsl_poly_str)
+        this.preprocesed_shader = NEWTON_FRAGMENT_SHADER
+        .replace(/{% n %}/g, n)
+        .replace('{% recursion %}', this.glsl_recursion)
+        .replace(/{% color_count %}/g, BASE_COLORS.length)
+        .replace(/{% poly %/g, this.glsl_poly_str)
+
         this.newton_canvas = document.getElementById('newton-canvas');
         this.dpr= window.devicePixelRatio;
         this.dirty = true
@@ -90,7 +93,7 @@ class App {
             u_mouse_coord: { type: "v2", value: this.mouse},
             u_zoom: { type: "f", value: 100 },
             u_roots: { type: "v2v", value: this.roots.flat() },
-            u_colors: { type: "v2v", value: BASE_COLORS.slice(0,this.n).flat()}
+            u_colors: { type: "v2v", value: BASE_COLORS.flat()}
 
         };
         const newton_material = new THREE.RawShaderMaterial({
