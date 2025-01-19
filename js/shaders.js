@@ -101,7 +101,7 @@ vec3 loop(vec2 S) {
         // }
         bool b = false;
         for (int k = 0; k < N; ++k) {
-            if (dist2(A, u_roots[k]) < SQUARED_BAILOUT) {
+            if (dist2(A, u_roots[k]) < SQUARED_BAILOUT/u_zoom) {
                 b = true;
                 R = k;
             }
@@ -122,7 +122,7 @@ void main( void ) {
     float screen_y = u_resolution.y- gl_FragCoord.y;
     for (int k = 0; k < N; ++k) {
 
-        if (dist2(coord, u_roots[k]) < 0.03) {
+        if (dist2(coord, u_roots[k]) < 0.03/u_zoom) {
             RGB = u_colors[k % {% color_count %}];
     
         }

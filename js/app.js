@@ -30,7 +30,7 @@ class App {
 
     constructor(n) {
         this.n = n
-        this.zoom = 100
+        this.zoom = 10
         this._dragged_root = null;
         this.mouse = new THREE.Vector2(0,0)
         this.roots = [];
@@ -91,7 +91,7 @@ class App {
             new THREE.Vector2(this.newton_canvas.width,
                               this.newton_canvas.height) },
             u_mouse_coord: { type: "v2", value: this.mouse},
-            u_zoom: { type: "f", value: 100 },
+            u_zoom: { type: "f", value: this.zoom },
             u_roots: { type: "v2v", value: this.roots.flat() },
             u_colors: { type: "v2v", value: BASE_COLORS.flat()}
 
@@ -129,7 +129,7 @@ class App {
             const rect = this.newton_canvas.getBoundingClientRect()
             this.newton_canvas.width = rect.width * this.dpr;
             this.newton_canvas.height = rect.height * this.dpr;
-            this.zoom = 100;//Math.min(rect.width, rect.height) * this.dpr;
+            this.zoom = 0.4*Math.min(rect.width, rect.height) * this.dpr;
             this.dirty = true;
         }
         onWindowResize();
