@@ -3,4 +3,4 @@ A GLSL written interactive Newton fractal for demonstrations
 
 ### [Live Demo](https://odedbadt.github.io/newton)
 ### Screenshot:
-![Example Image](images/screenshot.jpg)
+![Example Image](images/recording.webp)
