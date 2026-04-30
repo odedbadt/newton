@@ -56,6 +56,38 @@ class App {
         this.newton_canvas = document.getElementById('newton-canvas');
         this.dpr= window.devicePixelRatio;
         this.dirty = true
+
+        const newton_context = this.newton_canvas.getContext('webgl2');
+        this.camera = new THREE.Camera();
+        this.camera.position.z = 1;
+
+        this.newton_scene = new THREE.Scene();
+
+        const geometry = new THREE.PlaneGeometry(2, 2);
+
+        this.newton_uniforms = {
+            u_time: { type: "f", value: 1.0 },
+            u_resolution: { type: "v2", value:
+            new THREE.Vector2(this.newton_canvas.width,
+                              this.newton_canvas.height) },
+            u_mouse_coord: { type: "v2", value: this.mouse},
+            u_zoom: { type: "f", value: this.zoom },
+            u_roots: { type: "v2v", value: this.roots.flat() },
+            u_colors: { type: "v2v", value: BASE_COLORS.flat()}
+        };
+        const newton_material = new THREE.RawShaderMaterial({
+            uniforms: this.newton_uniforms,
+            vertexShader: VERTEX_SHADER,
+            fragmentShader: this.preprocesed_shader,
+            glslVersion: THREE.GLSL3
+        });
+
+        this.newton_scene.add(new THREE.Mesh(geometry, newton_material));
+
+        this.newton_renderer = new THREE.WebGLRenderer({
+            canvas: this.newton_canvas,
+            context: newton_context
+        });
     }
 
 
@@ -73,49 +105,20 @@ class App {
     init() {
         this.init_size()
         this.init_mouse_events()
+        this.init_scroll()
         this.animate()
     }
     render() {
+        this.newton_uniforms.u_resolution.value.set(this.newton_canvas.width, this.newton_canvas.height);
+        this.newton_uniforms.u_mouse_coord.value = this.mouse;
+        this.newton_uniforms.u_zoom.value = this.zoom;
+        this.newton_uniforms.u_roots.value = this.roots.flat();
 
-        const newton_context = this.newton_canvas.getContext('webgl2');
-        const camera = new THREE.Camera();
-        camera.position.z = 1;
+        const rect = this.newton_canvas.getBoundingClientRect();
 
-        const newton_scene = new THREE.Scene();
-
-        const geometry = new THREE.PlaneGeometry(2, 2);
-
-        const newton_uniforms = {
-            u_time: { type: "f", value: 1.0 },
-            u_resolution: { type: "v2", value: 
-            new THREE.Vector2(this.newton_canvas.width,
-                              this.newton_canvas.height) },
-            u_mouse_coord: { type: "v2", value: this.mouse},
-            u_zoom: { type: "f", value: this.zoom },
-            u_roots: { type: "v2v", value: this.roots.flat() },
-            u_colors: { type: "v2v", value: BASE_COLORS.flat()}
-
-        };
-        const newton_material = new THREE.RawShaderMaterial({
-            uniforms: newton_uniforms,
-            vertexShader: VERTEX_SHADER,
-            fragmentShader: this.preprocesed_shader,
-            glslVersion: THREE.GLSL3
-        });
-
-        newton_scene.add(new THREE.Mesh(geometry, newton_material));
-
-        const newton_renderer = new THREE.WebGLRenderer({
-            canvas: this.newton_canvas,
-            context: newton_context
-        })
-        const rect = this.newton_canvas.getBoundingClientRect()
-
-        newton_renderer.setPixelRatio(this.dpr);
-        newton_renderer.setSize(rect.width,
-            rect.height)
-        newton_renderer.render(newton_scene, camera);
-
+        this.newton_renderer.setPixelRatio(this.dpr);
+        this.newton_renderer.setSize(rect.width, rect.height);
+        this.newton_renderer.render(this.newton_scene, this.camera);
     }
     animate() {
         if (this.dirty) {
@@ -173,6 +176,53 @@ class App {
             this._dragged_root = null;
             this.dirty = true
         })
+    }
+    init_scroll() {
+        this.newton_canvas.addEventListener('wheel', (event) => {
+            event.preventDefault()
+            // Get the modifiers pressed
+            const ctrl_key = event.ctrlKey;
+          
+            // Access scroll properties
+            const deltaX = event.deltaX; // Horizontal scroll
+            const deltaY = event.deltaY; // Vertical scroll
+          
+          
+            // Perform actions based on modifiers and scroll direction
+            if (ctrl_key) {
+                // Zoom:;
+                // view_port.h, w changes
+                // cursor in before and in after change has to be contant
+                // const art_x_before_zoom = this.state.view_port.x + event.offsetX  / 
+                // this.view_canvas.clientWidth * this.state.view_port.w;
+                /* equations:
+                // view_port_x_before + cursor_x*view_port_w_before / view_canvas_w = 
+                // view_port_x_after + cursor_x*view_port_w_after  / view_canvas_w
+                // view_port_y_before + cursor_x*view_port_h_before / view_canvas_h = 
+                // view_port_y_after + cursor_x*view_port_h_after  / view_canvas_h
+                // thus:
+                // view_port_y_after = view_port_y_before + cursor_y*(view_port_h_before-view_port_h_after) / view_canvas_h
+                // view_port_x_after = view_port_x_before + cursor_x*(view_port_w_before-view_port_w_after) / view_canvas_w
+                // view_port_y_after = view_port_y_before + cursor_y*deltaY/ view_canvas_h
+                // view_port_x_after = view_port_y_after*aspect;
+                */
+                this.zoom = this.zoom + deltaY;
+                // const aspect = this.state.view_port.w / this.state.view_port.h;
+                // const ratio_h = Math.exp(deltaY/1000);
+                // const delta_h = this.state.view_port.h*(ratio_h-1)
+                // this.state.view_port.y = this.state.view_port.y - event.offsetY * delta_h/ this.view_canvas.clientHeight;
+                // this.state.view_port.x = this.state.view_port.x - event.offsetX * delta_h*aspect/ this.view_canvas.clientWidth;
+                // this.state.view_port.h = Math.max(1, this.state.view_port.h*ratio_h)
+                // this.state.view_port.w = this.state.view_port.h*aspect;
+            } else {
+                // this.state.view_port.y = Math.max(0, this.state.view_port.y+deltaY/ this.view_canvas.clientHeight*100)
+                // this.state.view_port.x = Math.max(0, this.state.view_port.x+deltaX/ this.view_canvas.clientWidth*100)
+            }
+            this.dirty = true
+
+
+            
+        });
     }
         
 }

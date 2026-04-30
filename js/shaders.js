@@ -119,9 +119,7 @@ vec3 loop(vec2 S) {
 void main( void ) {
     vec2 coord = (gl_FragCoord.xy - u_resolution.xy/2.0) / u_zoom;
     vec3 RGB = loop(coord);
-    float screen_y = u_resolution.y- gl_FragCoord.y;
     for (int k = 0; k < N; ++k) {
-
         if (dist2(coord, u_roots[k]) < 0.03/u_zoom) {
             RGB = u_colors[k % {% color_count %}];
     
